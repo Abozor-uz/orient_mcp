@@ -1,0 +1,56 @@
+version: 1
+schemas: [public, garage_export]
+allowed_entities: ["public.*", "garage_export.*"]
+denied_entities:
+  - "public.pg_*"
+  - "public.django_*"
+  - "public.auth_*"
+  - "public.*token*"
+  - "public.*session*"
+  - "public.*secret*"
+  - "public.*credential*"
+  - "public.*otp*"
+  - "public.*verificationcode*"
+  - "public.*webhook*"
+  - "public.celery_*"
+  - "public.kombu_*"
+  - "public.room"
+  - "public.message"
+  - "public.chat_*"
+  - "public.message_media"
+  - "public.notification_logs"
+  - "public.pgbench_*"
+denied_field_patterns:
+  - '(password|passwd|secret|token|credential|private_key|api_key|session_key|authorization)'
+  - '(^|_)(otp|pin|cvv|cvc|pan|pinfl|pinpp|pnfl|jshshir|passport|card_number|bank_account|iban)($|_)'
+  - '(verification_code|confirmation_code|sms_code|passport|document_number)'
+  - '(^|_)(payload|headers|request_body|response_body|raw_data|raw_response|extra_data|cookie)($|_)'
+  - '^(data|metadata|extra|body|content|text|comment|comments|message|description|notes)$'
+denied_fields:
+  public.users: [code, sms, photo_passport, photo_passport_selfie]
+entity_aliases:
+  public.users: [customers, users, клиенты, пользователи, mijozlar]
+  public.car: [listings, объявления, "e'lonlar"]
+  public.corecar: [vehicle_catalog, каталог автомобилей]
+  public.auction: [auctions, аукционы, auksionlar]
+  public.offer: [offers, ставки, takliflar]
+  public.carwash_carwashorder: [carwash_orders, мойки, заказы мойки, avtoyuvish]
+  public.carwash_carwashpaymentmethod: [carwash_payments, оплаты мойки]
+  public.business_account_garagecar: [garage_vehicles, гараж, автомобили клиентов]
+  public.diagnostic: [diagnostics, диагностика]
+  public.price_prediction: [vehicle_valuation, оценка автомобиля]
+  garage_export.vehicle_export: [garage_vehicle_export, выгрузка автомобилей]
+  garage_export.cashback_export: [garage_cashback, кешбэк, cashback]
+entity_descriptions:
+  public.users: "Platform customers and users. Credential fields are hidden. Phone-like usernames may be personal data."
+  public.car: "Marketplace vehicle listings; distinct from garage vehicles and the core vehicle catalog."
+  public.corecar: "Core vehicle data used by listings and other product flows."
+  public.auction: "Vehicle auction lifecycle. Inspect the actual status fields before classifying outcomes."
+  public.offer: "Auction offers/bids. Several offers may belong to one auction."
+  public.carwash_carwashorder: "Carwash orders from mobile and cashier flows. Inspect payment and order states separately."
+  public.carwash_carwashpaymentmethod: "Payment-method allocations for carwash orders; not necessarily one row per order."
+  public.business_account_garagecar: "Vehicles stored in the original Orient customer/business garage."
+  public.diagnostic: "Vehicle diagnostic inspections and workflow results."
+  public.price_prediction: "Vehicle price estimates; estimates are not completed sales."
+  garage_export.vehicle_export: "Garage integration view derived from Orient source tables. Avoid double-counting source records."
+  garage_export.cashback_export: "Cashback integration snapshot. Do not interpret a balance as cash revenue."

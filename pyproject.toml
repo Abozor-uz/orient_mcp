@@ -1,0 +1,30 @@
+[project]
+name = "orient-mcp"
+version = "0.1.0"
+description = "Read-only MCP server for Orient PostgreSQL"
+requires-python = ">=3.12"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "ASYNC"]
+ignore = ["E501", "UP042", "UP046"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+plugins = ["pydantic.mypy"]
+exclude = ["tests/integration"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+markers = [
+  "unit: fast tests without external I/O",
+  "integration: tests against a real PostgreSQL database",
+  "mcp: MCP transport and tool contract tests",
+  "oauth: OAuth authorization flow tests",
+]

@@ -1,0 +1,46 @@
+services:
+  - type: web
+    name: orient-mcp
+    runtime: docker
+    region: frankfurt
+    plan: starter
+    healthCheckPath: /health/ready
+    autoDeploy: false
+    preDeployCommand: python -m app.cli migrate-control
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: ORIENT_DATABASE_URL
+        sync: false
+      - key: ORIENT_READ_ROLE
+        value: pg_read_all_data
+      - key: ORIENT_ADDITIONAL_DATABASES
+        value: garage,notification,parser_data,scrap_data,qrmenu
+      - key: DATA_SOURCE_LABEL
+        value: orient
+      - key: MCP_CONTROL_DATABASE_URL
+        sync: false
+      - key: MCP_PUBLIC_BASE_URL
+        sync: false
+      - key: MCP_AGENT_LOGIN
+        value: orient_workspace_agent
+      - key: MCP_AGENT_PASSWORD_HASH
+        sync: false
+      - key: MCP_AUTH_PEPPER
+        sync: false
+      - key: MCP_ALLOWED_ORIGINS
+        value: https://chatgpt.com,https://chat.openai.com
+      - key: MCP_ALLOWED_REDIRECT_ORIGINS
+        value: https://chatgpt.com,https://chat.openai.com
+      - key: ORIENT_ALLOWED_SCHEMAS
+        value: public,garage_export
+      - key: ORIENT_POLICY_PATH
+        value: config/catalog_overrides.yaml
+      - key: DB_POOL_MIN
+        value: "0"
+      - key: DB_POOL_MAX
+        value: "2"
+      - key: DB_STATEMENT_TIMEOUT_MS
+        value: "5000"
+      - key: CATALOG_TTL_SECONDS
+        value: "600"
