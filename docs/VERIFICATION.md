@@ -5,7 +5,8 @@ Result: **96 tests passed**, including real database and HTTP integration tests.
 Environment: Python 3.12, native PostgreSQL 14.24 on Windows, bound exclusively
 to `127.0.0.1:55479`. Synthetic `mcp_test_*` databases and temporary test roles
 were created locally. The production source uses PostgreSQL 14.17; production
-acceptance of this new server remains a separate step.
+metadata/OAuth deployment acceptance is recorded below. Business-data acceptance
+remains a separate owner check.
 
 Passed:
 
@@ -37,13 +38,26 @@ Passed:
 - Real CLI subprocess startup and network HTTP readiness.
 - Idempotent control migration and metadata-only preflight subprocess.
 
-Not performed:
+## Render acceptance — 2026-09-16
 
-- Production MCP calls, production migrations or deployment.
-- Docker image build: the local Docker Engine was unavailable. Dockerfile and
-  Render Blueprint are supplied; CI includes image building and PostgreSQL 14
-  integration tests, but no remote CI run is claimed.
-- Render-to-Orient network acceptance and real AGM client login.
+- Service `orient-mcp` is live in Frankfurt, Abozor.gr, project
+  `prj-d9lml6qjnfac73as0p50`, environment Production.
+- Deployed functional commit: `41b90625`; GitHub CI passed, including PostgreSQL
+  integration tests and Docker image build. Render also built the Docker image.
+- OAuth discovery, dynamic registration, PKCE login, refresh and revocation
+  passed over public HTTPS. Unauthenticated MCP access returns 401.
+- All ten MCP tools are discoverable with read-only annotations.
+- `orient_test`, `garage`, `notification`, `parser_data`, `scrap_data`, `qrmenu`
+  report TLS and read-only transactions; session login is `garage_sync_ro`,
+  effective transaction role is `pg_read_all_data`.
+- The main policy-filtered catalog exposes 359 entities. Actual GarageCar
+  metadata excludes `pinpp`, `prev_pnfl`, `extra_data` and retains plate/VIN fields.
+- No business records were fetched. Migrations targeted only the new control DB.
+- TLS diagnostics now use the active libpq connection: `pg_stat_ssl` returns
+  NULL after SET ROLE for this login despite TLS being enabled.
+
+Not performed: source-side migrations/write probes; business-record correctness
+and search-latency acceptance; connection from the owner's actual ChatGPT UI.
 
 The local source package contains no production credentials, table rows, database
 dumps, virtual environment, database binaries or local test database files.

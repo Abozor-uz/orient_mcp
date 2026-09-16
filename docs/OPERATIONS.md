@@ -59,6 +59,23 @@ rotation and attribution become necessary.
 - Garage PostgreSQL client and the garage_export setup migration.
 - Live metadata-only access audit dated 2026-09-16.
 
-The implementation turn performs no production queries or deployment. The prior
-audit established access, while the new MCP code is verified on synthetic local
-PostgreSQL before later production acceptance.
+Development and negative-write tests use synthetic local PostgreSQL. Deployment
+acceptance reads only production context/catalogs through the MCP service.
+
+## Deployment identifiers
+
+- Repository: https://github.com/Abozor-uz/orient_mcp (public).
+- Workspace: Abozor.gr (`tea-d8ek0rn7f7vs73d949jg`).
+- Project: `prj-d9lml6qjnfac73as0p50` (API name `mcp_pool`).
+- Environment: Production (`evm-d9lml6qjnfac73as0p6g`).
+- Service: `srv-dale2arm8hqs7398h71g`, Docker Starter, Frankfurt, manual deploys.
+- MCP endpoint: https://orient-mcp.onrender.com/mcp.
+- Control database: `dpg-dale1s61egvs73e97m9g-a`, Basic 256 MB / 1 GB, Frankfurt;
+  external access disabled, service connects over the internal network with TLS.
+- Source: Orient production `orient_test` plus the five configured additional
+  databases, accessed as `garage_sync_ro` with transaction-local read role.
+
+ChatGPT uses OAuth dynamic client registration: leave Client ID and Client Secret
+empty, then sign in with the separately supplied analyst account. Passwords and
+database URLs are stored in Render ENV and excluded local deployment artifacts,
+never in this repository. Source database credentials are not connector credentials.

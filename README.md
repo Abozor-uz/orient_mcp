@@ -130,8 +130,13 @@ also supported; the development machine used loopback port 55479.
 `render.yaml` defines an independent paid Docker web service, disabled automatic
 deploys, readiness checks and a pre-deploy migration **only for the control DB**.
 Provide `ORIENT_DATABASE_URL`, `MCP_CONTROL_DATABASE_URL`, public URL and OAuth
-secrets through Render. No service has been created or deployed by this package.
-See [operations](docs/OPERATIONS.md) for the production acceptance sequence.
+secrets through Render. The deployed service is
+[`orient-mcp`](https://dashboard.render.com/web/srv-dale2arm8hqs7398h71g),
+in the Abozor.gr workspace, the project's Production environment, Frankfurt.
+Its MCP endpoint is `https://orient-mcp.onrender.com/mcp`.
+The separate `orient-mcp-control` Render PostgreSQL stores only OAuth/audit state.
+The source repository is public: [Abozor-uz/orient_mcp](https://github.com/Abozor-uz/orient_mcp).
+See [operations](docs/OPERATIONS.md) for the acceptance sequence and deployment identifiers.
 
 ## Policy and limitations
 
