@@ -232,12 +232,13 @@ class PostgresRecordRepository:
                        session_user AS session_user,
                        pg_is_in_recovery() AS replica,
                        current_setting('server_version') AS server_version,
-                       (SELECT ssl FROM pg_stat_ssl WHERE pid=pg_backend_pid()) AS tls,
                        current_setting('TimeZone') AS timezone,
                        current_setting('transaction_read_only') = 'on' AS transaction_read_only
                 """
             )
             row = await cursor.fetchone()
+            # SET ROLE can hide pg_stat_ssl details even for our own session.
+            tls = connection.pgconn.ssl_in_use
         if row is None:
             raise RuntimeError("database_context_unavailable")
         return DatabaseContext(
@@ -246,7 +247,7 @@ class PostgresRecordRepository:
             user=row["user"],
             session_user=row["session_user"],
             replica=bool(row["replica"]),
-            tls=bool(row["tls"]),
+            tls=tls,
             server_version=row["server_version"],
             timezone=row["timezone"],
             transaction_read_only=bool(row["transaction_read_only"]),
