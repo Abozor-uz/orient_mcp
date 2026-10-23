@@ -27,7 +27,14 @@ async def check() -> None:
         try:
             await source.data_pool.open()
             context = await source.context_service.get_context()
-            if settings.environment == "production" and not context.tls:
+            if (
+                settings.environment == "production"
+                and (
+                    settings.orient_source_transport == "postgres"
+                    or source.name != settings.data_source_label
+                )
+                and not context.tls
+            ):
                 raise RuntimeError("tls_required")
             print(json.dumps(context.model_dump(mode="json"), ensure_ascii=False))
         finally:

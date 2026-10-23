@@ -127,6 +127,21 @@ also supported; the development machine used loopback port 55479.
 
 ## Deployment
 
+The primary Orient source can use the authenticated read API in the existing
+Orient backend. Set `ORIENT_SOURCE_TRANSPORT=http` and supply the existing
+Orient service key as backend-only `ORIENT_API_SERVICE_KEY`. Production defaults
+are `https://motors.itpoint.uz`, environment `production`, and database
+`orient_test`; additional URL/database settings are optional overrides.
+The HTTP reader rejects source/environment/database mismatches and never falls
+back to SQL when the API fails.
+
+Additional databases keep their existing PostgreSQL connections and TLS checks.
+Keep `ORIENT_DATABASE_URL` while those sources are configured. The separate
+control database, OAuth configuration and audit storage remain unchanged.
+No separate data API container or new control database is required. To roll
+back the primary reader, restore `ORIENT_SOURCE_TRANSPORT=postgres` with the
+existing source DSN and deploy the previous accepted revision.
+
 `render.yaml` defines an independent paid Docker web service, disabled automatic
 deploys, readiness checks and a pre-deploy migration **only for the control DB**.
 Provide `ORIENT_DATABASE_URL`, `MCP_CONTROL_DATABASE_URL`, public URL and OAuth

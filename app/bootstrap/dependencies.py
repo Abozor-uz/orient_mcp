@@ -12,6 +12,7 @@ from dataclasses import dataclass
 
 from app.bootstrap.sources import SourceDependencies, build_source
 from app.domain.errors import QueryValidationError
+from app.domain.ports import SourceTransportPort
 from app.infrastructure.postgres.control_repository import PostgresControlRepository
 from app.infrastructure.postgres.pool import PostgresPool
 from app.presentation.mcp.token_verifier import AccessTokenVerifier
@@ -34,7 +35,7 @@ from app.settings import Settings
 @dataclass(slots=True)
 class ApplicationDependencies:
     settings: Settings
-    data_pool: PostgresPool
+    data_pool: SourceTransportPort
     control_pool: PostgresPool
     control_store: PostgresControlRepository
     catalog_service: CatalogService

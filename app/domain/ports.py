@@ -23,6 +23,11 @@ from app.domain.models import (
 )
 
 
+class SourceTransportPort(Protocol):
+    async def open(self) -> None: ...
+    async def close(self) -> None: ...
+
+
 class CatalogRepositoryPort(Protocol):
     async def load_catalog(self) -> CatalogSnapshot: ...
 

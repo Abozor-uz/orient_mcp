@@ -19,7 +19,8 @@ def test_business_entity_is_available(entity: str) -> None:
 
 
 @pytest.mark.parametrize(
-    "entity", ["django_session", "firebase_token", "pg_stat_statements", "message"]
+    "entity",
+    ["django_session", "firebase_token", "pg_stat_statements", "message", "service_api_keys"],
 )
 def test_secret_bearing_entities_are_hidden(entity: str) -> None:
     policy = CatalogPolicy.load(Path("config/catalog_overrides.yaml"), ["public"])

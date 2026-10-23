@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Literal
 from urllib.parse import urlparse
 
 from psycopg.conninfo import conninfo_to_dict
@@ -28,7 +29,13 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     data_source_label: str = "orient"
 
-    orient_database_url: SecretStr
+    orient_source_transport: Literal["postgres", "http"] = "postgres"
+    orient_database_url: SecretStr | None = None
+    orient_api_base_url: str = "https://motors.itpoint.uz"
+    orient_api_service_key: SecretStr | None = None
+    orient_api_environment: Literal["dev", "production"] = "production"
+    orient_api_timeout_seconds: float = Field(default=7, ge=1, le=30)
+    orient_api_primary_database: str = Field(default="orient_test", max_length=63)
     orient_additional_databases: str = ""
     orient_read_role: str = "pg_read_all_data"
     mcp_control_database_url: SecretStr
@@ -72,22 +79,69 @@ class Settings(BaseSettings):
             raise ValueError("mcp_agent_password_hash_required")
         if len(self.mcp_auth_pepper.get_secret_value()) < 16:
             raise ValueError("mcp_auth_pepper_too_short")
-        data = conninfo_to_dict(self.orient_database_url.get_secret_value())
+        if self.orient_source_transport == "http":
+            if not self.orient_api_primary_database:
+                raise ValueError("orient_read_api_primary_database_required")
+            api = urlparse(self.orient_api_base_url)
+            allowed = (
+                {"motors.itpoint.uz"}
+                if self.orient_api_environment == "production"
+                else {"dev.avision.uz", "185.100.55.56"}
+            )
+            local_api = self.environment != "production" and api.hostname in {
+                "localhost",
+                "127.0.0.1",
+                "::1",
+            }
+            if (
+                api.username
+                or not api.netloc
+                or (not local_api and (api.scheme != "https" or api.hostname not in allowed))
+                or (local_api and api.scheme not in {"http", "https"})
+            ):
+                raise ValueError("orient_read_api_environment_invalid")
+            if (
+                self.orient_api_service_key is None
+                or not self.orient_api_service_key.get_secret_value()
+            ):
+                raise ValueError("orient_read_api_service_key_required")
+            if self.additional_databases:
+                if self.orient_database_url is None:
+                    raise ValueError("additional_database_connection_required")
+                data = conninfo_to_dict(self.orient_database_url.get_secret_value())
+            else:
+                data = {}
+        else:
+            if self.orient_database_url is None:
+                raise ValueError("orient_database_url_required")
+            data = conninfo_to_dict(self.orient_database_url.get_secret_value())
         control = conninfo_to_dict(self.mcp_control_database_url.get_secret_value())
-        databases = [str(data.get("dbname", "")), *self.additional_databases]
+        primary = (
+            self.orient_api_primary_database
+            if self.orient_source_transport == "http"
+            else str(data.get("dbname", ""))
+        )
+        databases = [primary, *self.additional_databases]
         if len(databases) != len(set(databases)) or len(databases) > 8:
             raise ValueError("duplicate_or_excessive_databases")
         if self.data_source_label in self.additional_databases:
             raise ValueError("source_label_conflicts_with_database")
         if not all(name and len(name) <= 63 for name in databases):
             raise ValueError("invalid_database_name")
-        if (data.get("host"), data.get("port", "5432")) == (
-            control.get("host"),
-            control.get("port", "5432"),
-        ) and control.get("dbname") in databases:
+        if (
+            data
+            and (data.get("host"), data.get("port", "5432"))
+            == (
+                control.get("host"),
+                control.get("port", "5432"),
+            )
+            and control.get("dbname") in databases
+        ):
+            raise ValueError("control_database_must_be_separate")
+        if self.orient_source_transport == "http" and control.get("dbname") in databases:
             raise ValueError("control_database_must_be_separate")
         if self.environment == "production":
-            for conn in (data, control):
+            for conn in [data, control] if data else [control]:
                 if conn.get("sslmode") not in {"require", "verify-ca", "verify-full"}:
                     raise ValueError("production_database_tls_required")
         return self
