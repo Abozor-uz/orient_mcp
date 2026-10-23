@@ -52,3 +52,39 @@ def test_settings_reject_duplicate_sources() -> None:
 def test_settings_require_tls_for_production_connections() -> None:
     with pytest.raises(ValidationError, match="production_database_tls_required"):
         _settings(environment="production")
+
+
+def test_http_sources_require_no_database_credentials() -> None:
+    settings = _settings(
+        orient_source_transport="http",
+        orient_database_url=None,
+        orient_api_base_url="https://motors.itpoint.uz",
+        orient_api_environment="production",
+        orient_api_service_key="synthetic-key",
+        orient_api_primary_database="orient_test",
+    )
+    assert settings.orient_database_url is None
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"orient_api_primary_database": ""},
+        {"orient_api_service_key": ""},
+        {"orient_api_base_url": "https://dev.avision.uz"},
+        {"orient_api_base_url": "http://motors.itpoint.uz"},
+        {"mcp_control_database_url": "postgresql://control:secret@db/orient_test"},
+    ],
+)
+def test_http_source_settings_fail_closed(changes: dict[str, object]) -> None:
+    values: dict[str, object] = {
+        "orient_source_transport": "http",
+        "orient_database_url": None,
+        "orient_api_base_url": "https://motors.itpoint.uz",
+        "orient_api_environment": "production",
+        "orient_api_service_key": "synthetic-key",
+        "orient_api_primary_database": "orient_test",
+        **changes,
+    }
+    with pytest.raises(ValidationError):
+        _settings(**values)

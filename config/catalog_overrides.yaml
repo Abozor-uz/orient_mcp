@@ -2,6 +2,7 @@ version: 1
 schemas: [public, garage_export]
 allowed_entities: ["public.*", "garage_export.*"]
 denied_entities:
+  - "public.service_api_keys"
   - "public.pg_*"
   - "public.django_*"
   - "public.auth_*"

@@ -34,6 +34,11 @@ if TYPE_CHECKING:
     from app.bootstrap.dependencies import ApplicationDependencies
 
 _READ_ONLY = ToolAnnotations(readOnlyHint=True, destructiveHint=False, idempotentHint=True)
+ToolOperation = Callable[[], Awaitable[ToolResult[Any]]]
+ToolRunner = Callable[
+    ["ApplicationDependencies", str, str | None, str | None, ToolOperation],
+    Awaitable[dict[str, Any]],
+]
 
 
 def build_fastmcp(deps: ApplicationDependencies) -> FastMCP:
@@ -60,7 +65,14 @@ def build_fastmcp(deps: ApplicationDependencies) -> FastMCP:
     return mcp
 
 
-def _register_tools(mcp: FastMCP, deps: ApplicationDependencies, views: ToolViews) -> None:
+def _register_tools(
+    mcp: FastMCP,
+    deps: ApplicationDependencies,
+    views: ToolViews,
+    operation_runner: ToolRunner | None = None,
+) -> None:
+    _run = operation_runner or _run_authenticated
+
     @mcp.tool(description=views.text("search_customers"), annotations=_READ_ONLY)
     async def search_customers(
         phone: str | None = None,
@@ -287,7 +299,7 @@ def _result(
     )
 
 
-async def _run(
+async def _run_authenticated(
     deps: ApplicationDependencies,
     tool: str,
     source: str | None,
